@@ -1,6 +1,19 @@
+using Microsoft.EntityFrameworkCore;
+using Patient_Information_portal_Back_end;
+using Patient_Information_portal_Back_end.Data;
+using Patient_Information_portal_Back_end.Repository;
+using Patient_Information_portal_Back_end.Repository.IRepository;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddDbContext<ApplicationDbContext>(option =>
+{
+    option.UseSqlServer(builder.Configuration.GetConnectionString("DefaultSQLConnection"));
+});
+builder.Services.AddAutoMapper(typeof(MappingConfig));
+builder.Services.AddScoped<IPatientRepository, PatientRepository>();
+
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
