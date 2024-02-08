@@ -4,14 +4,8 @@ using System.Linq.Expressions;
 
 namespace Patient_Information_portal_Back_end.Repository.IRepository
 {
-    public interface IPatientRepository
+    public interface IPatientRepository : IRepo<PatientModel>
     {
-        //Task Create(PatientsModel entity);
-        Task<List<PatientModel>> GetAllAsync(Expression<Func<PatientModel, bool>> filter = null);
-        Task<PatientModel> GetAsync(Expression<Func<PatientModel, bool>> filter = null, bool tracked=true);
-        Task CreateAsync (PatientModel model);
-        Task UpdateAsync (PatientModel model);
-        Task RemoveAsync (PatientModel model);
-        Task SaveAsync ();
+        Task<PatientModel> UpdateAsync(PatientModel model);
     }
 }

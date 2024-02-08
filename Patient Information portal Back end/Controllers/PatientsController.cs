@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Patient_Information_portal_Back_end.Models;
 using Patient_Information_portal_Back_end.Models.Dto;
 using Patient_Information_portal_Back_end.Repository.IRepository;
+using System.Net;
 
 namespace Patient_Information_portal_Back_end.Controllers
 {
@@ -11,26 +12,30 @@ namespace Patient_Information_portal_Back_end.Controllers
     [ApiController]
     public class PatientsController : ControllerBase
     {
+        protected APIResponse _response;
         private readonly IPatientRepository _dbpatient;
         private readonly IMapper _mapper;
         public PatientsController(IPatientRepository dbpatient,IMapper mapper)
         {
             _dbpatient = dbpatient;
             _mapper = mapper;
+            this._response = new();
         }
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<ActionResult<IEnumerable<PatientDTO>>> GetAllPatients()
+        public async Task<ActionResult<IEnumerable<APIResponse>>> GetAllPatients()
         {
             IEnumerable<PatientModel> patientList = await _dbpatient.GetAllAsync();
-            return Ok(_mapper.Map<List<PatientDTO>>(patientList));
+            _response.Result = _mapper.Map<List<PatientDTO>>(patientList);
+            _response.StatusCode = HttpStatusCode.OK;
+            return Ok(_response);
         }
 
         [HttpGet("GetPatient")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<PatientDTO>> GetPatient(int id)
+        public async Task<ActionResult<APIResponse>> GetPatient(int id)
         {
             if (id == 0)
             {
@@ -41,7 +46,9 @@ namespace Patient_Information_portal_Back_end.Controllers
             {
                 return NotFound();
             }
-            return Ok(_mapper.Map<PatientDTO>(patient));
+            _response.Result = _mapper.Map<PatientDTO>(patient);
+            _response.StatusCode = HttpStatusCode.OK;
+            return Ok(_response);
         }
 
         [HttpPost]
@@ -61,14 +68,17 @@ namespace Patient_Information_portal_Back_end.Controllers
             PatientModel patient = _mapper.Map<PatientModel>(createPatient);
 
             await _dbpatient.CreateAsync(patient);
-            return CreatedAtRoute("GetPatient", new { id = patient.PatientId }, patient);
+
+            _response.Result = _mapper.Map<PatientDTO>(patient);
+            _response.StatusCode = HttpStatusCode.Created;
+            return CreatedAtRoute("GetPatient", new { id = patient.PatientId }, _response);
         }
 
         [HttpDelete("DeletePatientInfo")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> DeletePatientInfo(int id)
+        public async Task<ActionResult<APIResponse>> DeletePatientInfo(int id)
         {
             if (id == 0)
             {
@@ -80,7 +90,9 @@ namespace Patient_Information_portal_Back_end.Controllers
                 return NotFound();
             }
             await _dbpatient.RemoveAsync(patient);
-            return NoContent();
+            _response.StatusCode = HttpStatusCode.NoContent;
+            _response.IsSuccess = true;
+            return Ok(_response);
         }
 
         [HttpPut]
@@ -95,7 +107,10 @@ namespace Patient_Information_portal_Back_end.Controllers
             PatientModel patientModel = _mapper.Map<PatientModel>(updatePatient);
 
             await _dbpatient.UpdateAsync(patientModel);
-            return NoContent();
+
+            _response.StatusCode = HttpStatusCode.NoContent;
+            _response.IsSuccess = true;
+            return Ok(_response);
         }
 
 
